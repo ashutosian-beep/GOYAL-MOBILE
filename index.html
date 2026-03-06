@@ -8,19 +8,18 @@
 <meta name="theme-color" content="#1a1a2e">
 <title>Goyal Mobile Gallery</title>
 
-<!-- ✅ FIX 1: SAHI CDN URL (pehle @ALP-ALP galat tha) -->
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
-<!-- OCR LIBRARY FOR AADHAAR READING -->
+<!-- jsQR: Seedha camera frames se QR detect karta hai - koi wrapper nahi -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<!-- Tesseract OCR for Aadhaar reading -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0a0a1a;color:#fff;min-height:100vh;overflow-x:hidden}
-.screen{display:none;min-height:100vh;padding-bottom:20px}
+.screen{display:none;min-height:100vh;padding-bottom:30px}
 .screen.active{display:block}
 .header{background:linear-gradient(135deg,#1565c0,#0d47a1);padding:14px 16px;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.3)}
-.header-back{font-size:22px;cursor:pointer;margin-right:12px;padding:4px 8px}
+.header-back{font-size:22px;cursor:pointer;margin-right:12px;padding:4px 8px;border-radius:8px;background:rgba(255,255,255,0.15)}
 .header h2{font-size:16px;flex:1}
 .header-green{background:linear-gradient(135deg,#2e7d32,#1b5e20)}
 .header-orange{background:linear-gradient(135deg,#e65100,#bf360c)}
@@ -33,81 +32,88 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .stat-green{background:linear-gradient(135deg,#2e7d32,#1b5e20)}
 .stat-blue{background:linear-gradient(135deg,#1565c0,#0d47a1)}
 .stat-orange{background:linear-gradient(135deg,#e65100,#bf360c)}
-.btn{display:block;width:calc(100% - 24px);margin:6px 12px;padding:16px;border:none;border-radius:12px;font-size:16px;font-weight:bold;color:#fff;cursor:pointer;text-align:center;transition:transform 0.1s}
-.btn:active{transform:scale(0.97)}
+.btn{display:block;width:calc(100% - 24px);margin:6px 12px;padding:16px;border:none;border-radius:12px;font-size:16px;font-weight:bold;color:#fff;cursor:pointer;text-align:center;transition:transform 0.1s,opacity 0.1s}
+.btn:active{transform:scale(0.97);opacity:0.85}
 .btn-green{background:linear-gradient(135deg,#2e7d32,#1b5e20)}
 .btn-blue{background:linear-gradient(135deg,#1565c0,#0d47a1)}
 .btn-orange{background:linear-gradient(135deg,#e65100,#bf360c)}
 .btn-purple{background:linear-gradient(135deg,#7b1fa2,#4a148c)}
 .btn-gray{background:#2d2d44;font-size:14px;padding:13px}
-.btn-red{background:linear-gradient(135deg,#c62828,#b71c1c)}
 .btn-small{padding:10px;font-size:13px;margin:4px 12px}
 .btn-sync{background:linear-gradient(135deg,#00695c,#004d40);padding:12px;font-size:13px}
 .input-group{padding:0 12px;margin-bottom:8px}
-.input-group label{display:block;font-size:12px;color:#8888aa;margin-bottom:4px}
-input,textarea,select{width:100%;padding:12px 14px;border:2px solid #2d2d44;border-radius:10px;background:#16162b;color:#fff;font-size:15px;outline:none;transition:border-color 0.2s}
-input:focus,textarea:focus{border-color:#1565c0}
+input,select,textarea{width:100%;padding:12px 14px;border:2px solid #2d2d44;border-radius:10px;background:#16162b;color:#fff;font-size:15px;outline:none;transition:border-color 0.2s}
+input:focus{border-color:#1565c0}
 .toggle-group{display:flex;gap:8px;padding:0 12px;margin-bottom:10px}
-.toggle-btn{flex:1;padding:12px;border:2px solid #2d2d44;border-radius:10px;background:#16162b;color:#888;font-size:14px;font-weight:bold;cursor:pointer;text-align:center;transition:all 0.2s}
+.toggle-btn{flex:1;padding:12px;border:2px solid #2d2d44;border-radius:10px;background:#16162b;color:#888;font-size:14px;font-weight:bold;cursor:pointer;text-align:center}
 .toggle-btn.active-green{border-color:#2e7d32;background:#1a3a1a;color:#4caf50}
 .toggle-btn.active-orange{border-color:#e65100;background:#3a2a1a;color:#ff9800}
 .section-title{font-size:14px;color:#ffd700;font-weight:bold;padding:10px 14px 4px}
 .result-card{background:#1a1a2e;border-radius:10px;padding:12px;margin:6px 12px;border-left:4px solid #1565c0;cursor:pointer}
-.result-card:active{background:#222240}
 .result-card h4{font-size:15px;margin-bottom:4px}
 .result-card p{font-size:12px;color:#8888aa;margin:2px 0}
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold}
 .tag-new{background:#1b5e20;color:#4caf50}
 .tag-old{background:#4a2800;color:#ff9800}
-.confirm-box{background:linear-gradient(135deg,#2e7d32,#1b5e20);border-radius:12px;padding:16px;margin:10px 12px;text-align:center;font-size:16px;font-weight:bold;animation:pulse 1s ease-in-out 3}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.confirm-box{background:linear-gradient(135deg,#2e7d32,#1b5e20);border-radius:12px;padding:16px;margin:10px 12px;text-align:center;font-size:16px;font-weight:bold}
 .not-found-box{background:linear-gradient(135deg,#c62828,#b71c1c);border-radius:12px;padding:16px;margin:10px 12px;text-align:center}
-.detail-row{display:flex;padding:6px 14px;border-bottom:1px solid #1a1a2e}
-.detail-row .dl{color:#6688cc;font-size:12px;width:35%}
-.detail-row .dv{color:#fff;font-size:13px;width:65%;word-break:break-all}
-.status{text-align:center;font-size:13px;padding:6px;margin:4px 12px;border-radius:8px}
-.status-ok{background:#1b3a1b;color:#4caf50}
-.status-err{background:#3a1b1b;color:#ef5350}
-.status-sync{background:#1a2a3a;color:#42a5f5}
-.status-loading{background:#2a2a1a;color:#ffd700}
-.login-box{max-width:350px;margin:0 auto;padding:20px}
+.detail-row{display:flex;padding:8px 14px;border-bottom:1px solid #111}
+.detail-row .dl{color:#6688cc;font-size:12px;width:38%}
+.detail-row .dv{color:#fff;font-size:13px;width:62%;word-break:break-all}
+.status-bar{text-align:center;font-size:13px;padding:10px 12px;margin:6px 12px;border-radius:10px}
+.s-ok{background:#1b3a1b;color:#4caf50;border:1px solid #2e7d32}
+.s-err{background:#3a1b1b;color:#ef5350;border:1px solid #c62828}
+.s-load{background:#2a2a0a;color:#ffd700;border:1px solid #f57f17}
+.s-info{background:#0a1a3a;color:#42a5f5;border:1px solid #1565c0}
+.login-box{max-width:360px;margin:0 auto;padding:20px}
 .login-logo{text-align:center;padding:40px 0 20px}
 .login-logo .emoji{font-size:60px}
 .login-logo h1{color:#ffd700;font-size:22px;margin-top:10px}
 .login-logo p{color:#666;font-size:14px}
 
-/* ✅ FIX 2: SCANNER STYLES - proper container */
-#qr-reader-wrapper{width:calc(100% - 24px);margin:8px 12px;border-radius:12px;overflow:hidden;background:#111;border:2px solid #333}
-#qr-reader{width:100%}
-/* Override html5-qrcode default styles for dark theme */
-#qr-reader__dashboard{background:#1a1a2e!important;border-top:1px solid #333!important}
-#qr-reader__dashboard_section_csr button{background:#1565c0!important;color:#fff!important;border:none!important;border-radius:8px!important;padding:10px 20px!important;font-size:14px!important;cursor:pointer!important}
-#qr-reader__camera_selection{background:#16162b!important;color:#fff!important;border:1px solid #333!important;border-radius:6px!important;padding:6px!important;width:100%!important}
-#qr-reader__status_span{color:#ffd700!important;font-size:12px!important}
+/* ============ SCANNER STYLES ============ */
+.cam-wrap{position:relative;margin:8px 12px;border-radius:14px;overflow:hidden;background:#000;border:2px solid #333}
+.cam-wrap video{width:100%;display:block;max-height:320px;object-fit:cover}
+.cam-wrap canvas.scan-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
 
-.scan-progress{margin:8px 12px;padding:10px;background:#1a2a1a;border-radius:8px;text-align:center}
-.scan-progress .bar{height:6px;background:#333;border-radius:3px;margin-top:6px;overflow:hidden}
-.scan-progress .bar-fill{height:100%;background:#4caf50;border-radius:3px;transition:width 0.5s;width:0%}
-.scan-detected{background:#1b3a1b;border:2px solid #4caf50;border-radius:10px;padding:12px;margin:6px 12px}
-.scan-detected h4{color:#4caf50;margin-bottom:4px}
-.scan-detected p{font-size:13px;color:#aaa}
+/* Scanning overlay box */
+.scan-overlay{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scan-box{width:220px;height:220px;position:relative}
+.scan-box::before,.scan-box::after{content:'';position:absolute;width:40px;height:40px;border-color:#ffd700;border-style:solid}
+.scan-box::before{top:0;left:0;border-width:4px 0 0 4px;border-radius:4px 0 0 4px}
+.scan-box::after{bottom:0;right:0;border-width:0 4px 4px 0;border-radius:0 4px 4px 4px}
+.scan-box .c3{position:absolute;top:0;right:0;width:40px;height:40px;border-top:4px solid #ffd700;border-right:4px solid #ffd700;border-radius:0 4px 0 0}
+.scan-box .c4{position:absolute;bottom:0;left:0;width:40px;height:40px;border-bottom:4px solid #ffd700;border-left:4px solid #ffd700;border-radius:0 0 0 4px}
 
-.ocr-preview{margin:8px 12px;border-radius:10px;overflow:hidden;position:relative}
-.ocr-preview img{width:100%;display:block;border-radius:10px}
-.ocr-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;color:#ffd700;font-size:14px;font-weight:bold}
+/* Scanning line animation */
+.scan-line{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,#ffd700,transparent);animation:scanMove 2s linear infinite}
+@keyframes scanMove{0%{top:10%}100%{top:90%}}
 
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:25px;font-size:14px;z-index:999;opacity:0;transition:opacity 0.3s;white-space:nowrap}
+/* Success flash */
+.scan-success-flash{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(76,175,80,0.3);border-radius:12px;animation:flashFade 0.6s ease-out forwards}
+@keyframes flashFade{0%{opacity:1}100%{opacity:0}}
+
+.scan-result-box{background:#0d2a0d;border:2px solid #4caf50;border-radius:12px;padding:14px;margin:8px 12px}
+.scan-result-box h4{color:#4caf50;font-size:14px;margin-bottom:8px}
+.scan-result-box .data{color:#fff;font-size:18px;font-weight:bold;word-break:break-all;padding:8px;background:#0a1f0a;border-radius:8px}
+
+/* OCR Progress */
+.ocr-prog{margin:8px 12px;padding:12px;background:#0a1a2a;border-radius:10px;border:1px solid #1565c0}
+.ocr-prog .bar-bg{height:8px;background:#1a2a3a;border-radius:4px;margin-top:8px;overflow:hidden}
+.ocr-prog .bar-fill{height:100%;background:linear-gradient(90deg,#1565c0,#42a5f5);border-radius:4px;transition:width 0.3s;width:0%}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:25px;font-size:14px;z-index:9999;opacity:0;transition:opacity 0.3s;white-space:nowrap;border:1px solid #444;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 
-.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:200;padding:25% 16px 0}
-.modal-bg.show{display:block}
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-bg.show{display:flex}
+.modal-inner{background:#1a1a2e;border-radius:16px;padding:20px;width:100%;max-width:400px;border:1px solid #333}
 </style>
 </head>
 <body>
-
 <div class="toast" id="toast"></div>
 
-<!-- ========== LOGIN ========== -->
+<!-- ===== LOGIN ===== -->
 <div class="screen active" id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
@@ -117,715 +123,815 @@ input:focus,textarea:focus{border-color:#1565c0}
     </div>
     <div class="card" style="margin-top:20px">
       <h3 style="text-align:center;margin-bottom:14px;color:#aaa">🔐 Staff Login</h3>
-      <div class="input-group"><input type="text" id="loginName" placeholder="👤 Apna Naam"></div>
-      <div class="input-group"><input type="password" id="loginPin" placeholder="🔑 4-Digit PIN" maxlength="4" inputmode="numeric"></div>
-      <button class="btn btn-green" onclick="doLogin()" style="width:100%;margin:10px 0 0">🔓 LOGIN</button>
-      <div id="loginError" class="status status-err" style="display:none"></div>
+      <div class="input-group" style="margin-bottom:10px"><input type="text" id="loginName" placeholder="👤 Apna Naam"></div>
+      <div class="input-group" style="margin-bottom:10px"><input type="password" id="loginPin" placeholder="🔑 4-Digit PIN" maxlength="4" inputmode="numeric" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn btn-green" onclick="doLogin()" style="width:100%;margin:8px 0 0">🔓 LOGIN</button>
+      <div id="loginErr" class="status-bar s-err" style="display:none;margin-top:8px"></div>
     </div>
   </div>
 </div>
 
-<!-- ========== DASHBOARD ========== -->
+<!-- ===== DASHBOARD ===== -->
 <div class="screen" id="dashboardScreen">
   <div class="header">
     <h2>📱 GOYAL MOBILE</h2>
-    <span id="staffBadge" style="font-size:11px">👤</span>
+    <span id="staffBadge" style="font-size:11px;background:rgba(255,255,255,0.15);padding:4px 8px;border-radius:20px">👤</span>
   </div>
   <div class="stats-grid">
-    <div class="stat-card stat-green"><div class="num" id="statCust">0</div><div class="lbl">👥 Customers</div></div>
-    <div class="stat-card stat-blue"><div class="num" id="statSales">0</div><div class="lbl">📊 Sales</div></div>
-    <div class="stat-card stat-orange"><div class="num" id="statToday">0</div><div class="lbl">📅 Today</div></div>
+    <div class="stat-card stat-green"><div class="num" id="stCust">0</div><div class="lbl">👥 Customers</div></div>
+    <div class="stat-card stat-blue"><div class="num" id="stSales">0</div><div class="lbl">📊 Sales</div></div>
+    <div class="stat-card stat-orange"><div class="num" id="stToday">0</div><div class="lbl">📅 Aaj</div></div>
   </div>
-  <button class="btn btn-sync" onclick="syncDrive()">☁️ Drive Sync <span id="syncStatus">🔄</span></button>
+  <button class="btn btn-sync" onclick="syncDrive()">☁️ Drive Sync <span id="syncSt">🔄</span></button>
   <button class="btn btn-green" onclick="goNewSale()">🛒 NAYA MOBILE BECHO</button>
-  <button class="btn btn-blue" onclick="startAadhaarScan('search')">🪪 AADHAAR CARD SCAN → AUTO READ</button>
-  <button class="btn btn-orange" onclick="startQRScan('search')">📷 MOBILE QR AUTO SCAN</button>
+  <button class="btn btn-blue" onclick="openAadhaarScan('search')">🪪 AADHAAR CARD SCAN → AUTO READ</button>
+  <button class="btn btn-orange" onclick="openQRScan('search')">📷 MOBILE QR AUTO SCAN</button>
   <button class="btn btn-purple" onclick="showScreen('searchScreen')">🔍 CUSTOMER SEARCH</button>
   <button class="btn btn-gray" onclick="showAllSales()">📋 Saari Sales Dekho</button>
-  <button class="btn btn-gray" onclick="showScreen('staffScreen');loadStaffList()">👥 Staff Manage</button>
+  <button class="btn btn-gray" onclick="showScreen('staffScreen');loadStaffUI()">👥 Staff Manage</button>
   <button class="btn btn-gray" onclick="exportCSV()">📤 CSV Export</button>
 </div>
 
-<!-- ========== NEW SALE ========== -->
+<!-- ===== NEW SALE ===== -->
 <div class="screen" id="newSaleScreen">
   <div class="header header-green">
     <span class="header-back" onclick="showScreen('dashboardScreen')">←</span>
     <h2>🛒 Naya Mobile Becho</h2>
   </div>
   <div class="section-title">👤 CUSTOMER DETAILS</div>
-  <button class="btn btn-blue btn-small" onclick="startAadhaarScan('sale')">🪪 Aadhaar AUTO SCAN → Naam, Number sab auto bharega!</button>
-  <div id="aadhaarScanResult"></div>
+  <button class="btn btn-blue btn-small" onclick="openAadhaarScan('sale')">🪪 Aadhaar AUTO SCAN → Naam, Number auto bharta hai!</button>
+  <div id="aadhaarFillMsg"></div>
   <div class="input-group"><input type="text" id="sName" placeholder="👤 Customer Naam"></div>
-  <div class="input-group"><input type="tel" id="sPhone" placeholder="📞 Phone Number"></div>
+  <div class="input-group"><input type="tel" id="sPhone" placeholder="📞 Phone Number" inputmode="numeric"></div>
   <div class="input-group"><input type="text" id="sAadhaar" placeholder="🪪 Aadhaar Number" inputmode="numeric"></div>
   <div class="input-group"><input type="text" id="sAddress" placeholder="📍 Address"></div>
-  
   <div class="section-title">📱 MOBILE DETAILS</div>
   <div class="toggle-group">
-    <div class="toggle-btn active-green" id="tNew" onclick="setType('new')">✨ NAYA</div>
-    <div class="toggle-btn" id="tOld" onclick="setType('old')">♻️ PURANA</div>
+    <div class="toggle-btn active-green" id="tNew" onclick="setMType('new')">✨ NAYA</div>
+    <div class="toggle-btn" id="tOld" onclick="setMType('old')">♻️ PURANA</div>
   </div>
-  <button class="btn btn-orange btn-small" onclick="startQRScan('sale')">📷 Mobile QR AUTO SCAN → IMEI auto bharega!</button>
-  <div id="qrScanResult"></div>
-  <div class="input-group"><input type="text" id="sBrand" placeholder="📱 Brand (Samsung, Vivo...)"></div>
-  <div class="input-group"><input type="text" id="sModel" placeholder="📱 Model"></div>
-  <div class="input-group"><input type="text" id="sImei" placeholder="🔢 IMEI Number"></div>
-  <div class="input-group"><input type="number" id="sPrice" placeholder="💰 Price (₹)"></div>
+  <button class="btn btn-orange btn-small" onclick="openQRScan('sale')">📷 Mobile QR AUTO SCAN → IMEI auto bharega!</button>
+  <div id="qrFillMsg"></div>
+  <div class="input-group"><input type="text" id="sBrand" placeholder="📱 Brand (Samsung, Vivo, Redmi...)"></div>
+  <div class="input-group"><input type="text" id="sModel" placeholder="📱 Model Name"></div>
+  <div class="input-group"><input type="text" id="sImei" placeholder="🔢 IMEI Number" inputmode="numeric"></div>
+  <div class="input-group"><input type="number" id="sPrice" placeholder="💰 Price (₹)" inputmode="numeric"></div>
   <div class="input-group"><input type="text" id="sQR" placeholder="📷 QR Data"></div>
   <div class="input-group"><input type="text" id="sNotes" placeholder="📝 Notes"></div>
   <button class="btn btn-green" onclick="saveSale()" style="margin-top:10px">💾 SALE SAVE KARO</button>
-  <div id="saleMsg"></div>
 </div>
 
-<!-- ========== QR SCANNER ========== -->
-<!-- ✅ FIX 3: Proper scanner screen structure -->
+<!-- ===== QR SCANNER SCREEN ===== -->
 <div class="screen" id="qrScanScreen">
   <div class="header header-orange">
-    <span class="header-back" onclick="stopQRScan()">←</span>
-    <h2>📷 QR / Barcode AUTO Scanner</h2>
+    <span class="header-back" onclick="closeQRScan()">←</span>
+    <h2>📷 QR / Barcode Scanner</h2>
   </div>
-  <div class="status status-loading" id="qrScanStatus" style="margin-top:8px">🔍 Camera load ho raha hai... Ek second ruko!</div>
-  
-  <!-- ✅ FIX 4: Separate wrapper div, actual scanner div inside -->
-  <div id="qr-reader-wrapper">
-    <div id="qr-reader"></div>
+
+  <div class="status-bar s-load" id="qrStatus" style="margin-top:8px">
+    🔍 Camera khul raha hai...
   </div>
-  
-  <div id="qrDetected"></div>
-  <button class="btn btn-gray btn-small" onclick="manualQREntry()">✏️ Manually type karo</button>
+
+  <!-- Camera view -->
+  <div class="cam-wrap" id="qrCamWrap">
+    <video id="qrVideo" autoplay playsinline muted style="width:100%;max-height:320px;object-fit:cover;display:block"></video>
+    <!-- Canvas for frame processing (hidden) -->
+    <canvas id="qrCanvas" style="display:none"></canvas>
+    <!-- Overlay with scanning box -->
+    <div class="scan-overlay">
+      <div class="scan-box">
+        <div class="c3"></div>
+        <div class="c4"></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="qrResult"></div>
+
+  <div style="padding:6px 12px;color:#666;font-size:12px;text-align:center">
+    📌 QR code ko camera ke saamne rakho — automatic detect hoga
+  </div>
+  <button class="btn btn-gray btn-small" onclick="manualQR()">✏️ Manually type karo</button>
 </div>
 
-<!-- ========== AADHAAR SCANNER ========== -->
+<!-- ===== AADHAAR SCANNER SCREEN ===== -->
 <div class="screen" id="aadhaarScanScreen">
   <div class="header" style="background:linear-gradient(135deg,#1565c0,#0d47a1)">
-    <span class="header-back" onclick="stopAadhaarScan()">←</span>
+    <span class="header-back" onclick="closeAadhaarScan()">←</span>
     <h2>🪪 Aadhaar AUTO Reader</h2>
   </div>
-  <div class="status status-loading" id="aadhaarScanStatus" style="margin-top:8px">
-    📸 Aadhaar Card ka FRONT photo lo → Auto read hoga!
+
+  <div class="status-bar s-load" id="aadhaarStatus" style="margin-top:8px">
+    📸 Aadhaar card ka FRONT photo lo
   </div>
-  <div style="padding:8px 12px">
-    <video id="aadhaarVideo" autoplay playsinline style="width:100%;border-radius:12px;background:#000;max-height:300px;object-fit:cover"></video>
+
+  <!-- Camera view for Aadhaar -->
+  <div class="cam-wrap" id="aadhaarCamWrap">
+    <video id="aadhaarVideo" autoplay playsinline muted style="width:100%;max-height:300px;object-fit:cover;display:block"></video>
+    <canvas id="aadhaarCanvas" style="display:none"></canvas>
   </div>
-  <button class="btn btn-blue" onclick="captureAadhaar()">📸 PHOTO LO → AUTO READ</button>
-  <canvas id="aadhaarCanvas" style="display:none"></canvas>
-  <div id="ocrProgress" style="display:none" class="scan-progress">
-    <div>🔍 Aadhaar padh rahe hain... <span id="ocrPercent">0</span>%</div>
-    <div class="bar"><div class="bar-fill" id="ocrBar"></div></div>
+
+  <button class="btn btn-blue" id="captureBtn" onclick="captureAadhaar()" style="margin-top:6px">
+    📸 PHOTO LO → AUTO READ KARO
+  </button>
+
+  <!-- OCR Progress -->
+  <div id="ocrProg" style="display:none" class="ocr-prog">
+    <div style="color:#42a5f5;font-size:13px">🔍 Aadhaar padh rahe hain... <strong id="ocrPct">0</strong>%</div>
+    <div class="bar-bg"><div class="bar-fill" id="ocrBar"></div></div>
   </div>
-  <div id="ocrResults"></div>
-  <button class="btn btn-gray btn-small" onclick="manualAadhaarEntry()">✏️ Manually type karo</button>
+
+  <div id="ocrOut"></div>
+  <button class="btn btn-gray btn-small" onclick="manualAadhaar()">✏️ Manually type karo</button>
 </div>
 
-<!-- ========== SEARCH ========== -->
+<!-- ===== SEARCH ===== -->
 <div class="screen" id="searchScreen">
   <div class="header header-purple">
     <span class="header-back" onclick="showScreen('dashboardScreen')">←</span>
     <h2>🔍 Search</h2>
   </div>
   <div style="display:flex;gap:6px;padding:10px 12px">
-    <input type="text" id="searchInp" placeholder="🔍 Naam, Phone, Aadhaar, QR..." style="flex:1" onkeyup="if(event.key==='Enter')doSearch()">
-    <button class="btn btn-purple" onclick="doSearch()" style="width:50px;margin:0;padding:10px">🔍</button>
+    <input type="text" id="searchQ" placeholder="🔍 Naam, Phone, Aadhaar..." style="flex:1" onkeydown="if(event.key==='Enter')doSearch()">
+    <button onclick="doSearch()" style="padding:12px 16px;background:#7b1fa2;border:none;border-radius:10px;color:#fff;font-size:18px;cursor:pointer">🔍</button>
   </div>
   <div style="display:flex;gap:6px;padding:0 12px 8px">
-    <button class="btn btn-blue btn-small" onclick="startAadhaarScan('search')" style="flex:1;margin:0">🪪 Aadhaar Scan</button>
-    <button class="btn btn-orange btn-small" onclick="startQRScan('search')" style="flex:1;margin:0">📷 QR Scan</button>
+    <button class="btn btn-blue btn-small" onclick="openAadhaarScan('search')" style="flex:1;margin:0">🪪 Aadhaar Scan</button>
+    <button class="btn btn-orange btn-small" onclick="openQRScan('search')" style="flex:1;margin:0">📷 QR Scan</button>
   </div>
-  <div id="searchResults"></div>
+  <div id="searchOut"></div>
 </div>
 
-<!-- ========== DETAIL ========== -->
+<!-- ===== DETAIL ===== -->
 <div class="screen" id="detailScreen">
   <div class="header header-green">
     <span class="header-back" onclick="showScreen(detBack)">←</span>
-    <h2 id="detTitle">👤 Details</h2>
+    <h2 id="detTitle">Details</h2>
   </div>
   <div id="detContent"></div>
 </div>
 
-<!-- ========== ALL SALES ========== -->
+<!-- ===== ALL SALES ===== -->
 <div class="screen" id="allSalesScreen">
-  <div class="header"><span class="header-back" onclick="showScreen('dashboardScreen')">←</span><h2>📋 All Sales</h2></div>
-  <div id="allSalesBox"></div>
+  <div class="header">
+    <span class="header-back" onclick="showScreen('dashboardScreen')">←</span>
+    <h2>📋 All Sales</h2>
+  </div>
+  <div id="allSalesOut"></div>
 </div>
 
-<!-- ========== STAFF ========== -->
+<!-- ===== STAFF ===== -->
 <div class="screen" id="staffScreen">
-  <div class="header" style="background:#2d2d44"><span class="header-back" onclick="showScreen('dashboardScreen')">←</span><h2>👥 Staff</h2></div>
+  <div class="header" style="background:#2d2d44">
+    <span class="header-back" onclick="showScreen('dashboardScreen')">←</span>
+    <h2>👥 Staff</h2>
+  </div>
   <div class="section-title">➕ Add Staff</div>
-  <div class="input-group"><input type="text" id="stName" placeholder="👤 Naam"></div>
-  <div class="input-group"><input type="tel" id="stPhone" placeholder="📞 Phone"></div>
-  <div class="input-group"><input type="password" id="stPin" placeholder="🔑 PIN" maxlength="4"></div>
-  <button class="btn btn-green btn-small" onclick="addStaff()">➕ Add</button>
+  <div class="input-group"><input type="text" id="stN" placeholder="👤 Naam"></div>
+  <div class="input-group"><input type="tel" id="stP" placeholder="📞 Phone"></div>
+  <div class="input-group"><input type="password" id="stPin" placeholder="🔑 PIN (4 digit)" maxlength="4" inputmode="numeric"></div>
+  <button class="btn btn-green btn-small" onclick="addStaff()">➕ Add Staff</button>
   <div class="section-title">Staff List:</div>
-  <div id="staffList"></div>
+  <div id="staffOut"></div>
 </div>
 
-<!-- MANUAL MODAL -->
+<!-- ===== MANUAL MODAL ===== -->
 <div class="modal-bg" id="manualModal">
-  <div class="card">
-    <h3 id="manualTitle" style="margin-bottom:12px;color:#ffd700">✏️</h3>
-    <div class="input-group"><input type="text" id="manualInp" style="font-size:18px"></div>
+  <div class="modal-inner">
+    <h3 id="manualTitle" style="margin-bottom:14px;color:#ffd700;text-align:center">✏️ Manually Type Karo</h3>
+    <div class="input-group" style="margin-bottom:14px">
+      <input type="text" id="manualInp" style="font-size:18px;text-align:center" autocomplete="off">
+    </div>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-green" onclick="submitManual()" style="flex:1;margin:0">✅</button>
-      <button class="btn btn-gray" onclick="closeManual()" style="flex:0.5;margin:0">❌</button>
+      <button class="btn btn-green" onclick="submitManual()" style="flex:1;margin:0">✅ Submit</button>
+      <button class="btn btn-gray" onclick="closeModal()" style="flex:0.6;margin:0">❌ Cancel</button>
     </div>
   </div>
 </div>
 
 <script>
-// ============================================
-// DATABASE
-// ============================================
-const K = {c:'gm_cust',s:'gm_sales',st:'gm_staff'};
-const SCRIPT_URL = ''; // Apps Script URL yahan daalo
+// =============================================
+// GLOBALS & DB
+// =============================================
+const DB = {
+  get: k => { try{ return JSON.parse(localStorage.getItem('gm_'+k)||'[]') }catch{ return [] } },
+  set: (k,v) => localStorage.setItem('gm_'+k, JSON.stringify(v))
+};
 
-let staff='', scanPurpose='', detBack='searchScreen', mType='new';
-let qrScanner=null, aadhaarStream=null;
+const SCRIPT_URL = ''; // Google Apps Script URL (optional)
+let currentStaff = '';
+let scanPurpose = '';   // 'sale' | 'search'
+let detBack = 'dashboardScreen';
+let mType = 'new';
 
-function db(k){try{return JSON.parse(localStorage.getItem(K[k])||'[]')}catch{return[]}}
-function dbSave(k,d){localStorage.setItem(K[k],JSON.stringify(d))}
+// QR Scanner state
+let qrVideoStream = null;
+let qrAnimFrame = null;
+let qrDetecting = false;
 
+// Aadhaar Camera state
+let aadhaarVideoStream = null;
+
+// =============================================
+// UTILS
+// =============================================
 function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if(id==='dashboardScreen') updateStats();
+  window.scrollTo(0,0);
+  if(id === 'dashboardScreen') updateStats();
 }
 
-function toast(m){
-  const t=document.getElementById('toast');
-  t.textContent=m;
+function toast(msg, dur=2500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+  setTimeout(() => t.classList.remove('show'), dur);
 }
 
-// ============================================
+function setStatus(elId, msg, type){
+  const el = document.getElementById(elId);
+  el.textContent = msg;
+  el.className = 'status-bar ' + type;
+}
+
+// =============================================
 // LOGIN
-// ============================================
+// =============================================
 function doLogin(){
-  const n=document.getElementById('loginName').value.trim();
-  const p=document.getElementById('loginPin').value.trim();
-  if(!n){showErr('❌ Naam likhein!');return}
-  if(p.length<4){showErr('❌ 4 digit PIN!');return}
-  let st=db('st');
-  let f=st.find(s=>s.name.toLowerCase()===n.toLowerCase());
-  if(f){
-    if((f.pin||'1234')!==p){showErr('❌ Galat PIN!');return}
-    staff=f.name;
-  }else{
-    st.push({id:'ST'+String(st.length+1).padStart(3,'0'),name:n,pin:p,phone:'',role:'Salesman'});
-    dbSave('st',st);staff=n;
+  const name = document.getElementById('loginName').value.trim();
+  const pin  = document.getElementById('loginPin').value.trim();
+  if(!name){ showLoginErr('❌ Naam likhein!'); return; }
+  if(pin.length < 4){ showLoginErr('❌ 4 digit PIN chahiye!'); return; }
+
+  let staffList = DB.get('st');
+  let found = staffList.find(s => s.name.toLowerCase() === name.toLowerCase());
+  if(found){
+    if((found.pin||'1234') !== pin){ showLoginErr('❌ Galat PIN!'); return; }
+    currentStaff = found.name;
+  } else {
+    staffList.push({ id:'ST'+String(staffList.length+1).padStart(3,'0'), name, pin, phone:'', role:'Salesman' });
+    DB.set('st', staffList);
+    currentStaff = name;
   }
-  document.getElementById('staffBadge').textContent='👤 '+staff;
+  document.getElementById('staffBadge').textContent = '👤 ' + currentStaff;
   showScreen('dashboardScreen');
-  syncFromDrive();
+  if(SCRIPT_URL) syncFromDrive();
 }
 
-function showErr(m){
-  const e=document.getElementById('loginError');
-  e.textContent=m;e.style.display='block';
-  setTimeout(()=>e.style.display='none',3000);
+function showLoginErr(m){
+  const el = document.getElementById('loginErr');
+  el.textContent = m; el.style.display = 'block';
+  setTimeout(() => el.style.display='none', 3000);
 }
 
 function updateStats(){
-  const c=db('c'),s=db('s'),today=new Date().toISOString().slice(0,10);
-  document.getElementById('statCust').textContent=c.length;
-  document.getElementById('statSales').textContent=s.length;
-  document.getElementById('statToday').textContent=s.filter(x=>(x.date||'').slice(0,10)===today).length;
+  const c = DB.get('c'), s = DB.get('s'), today = new Date().toISOString().slice(0,10);
+  document.getElementById('stCust').textContent = c.length;
+  document.getElementById('stSales').textContent = s.length;
+  document.getElementById('stToday').textContent = s.filter(x => (x.date||'').slice(0,10) === today).length;
 }
 
-// ============================================
-// ✅ FIX 5: QR / BARCODE SCANNER - WORKING VERSION
-// Html5QrcodeScanner use karo (more stable than Html5Qrcode)
-// ============================================
-function startQRScan(purpose){
+// =============================================
+// QR SCANNER — jsQR direct camera (FULLY WORKING)
+// =============================================
+function openQRScan(purpose){
   scanPurpose = purpose;
   showScreen('qrScanScreen');
-  document.getElementById('qrDetected').innerHTML = '';
-  document.getElementById('qrScanStatus').textContent = '🔍 Camera khul raha hai...';
-  document.getElementById('qrScanStatus').className = 'status status-loading';
-  
-  // ✅ FIX: Pehle purana scanner destroy karo
-  if(qrScanner){
-    try{ qrScanner.clear().catch(()=>{}); }catch(e){}
-    qrScanner = null;
-  }
-  
-  // ✅ FIX: div ko reset karo - innerHTML clear karo
-  document.getElementById('qr-reader').innerHTML = '';
-  
-  // ✅ FIX: Thoda wait karo phir scanner start karo
-  setTimeout(() => {
-    try {
-      qrScanner = new Html5QrcodeScanner(
-        "qr-reader",          // ✅ Sahi div ID
-        {
-          fps: 10,             // Frames per second
-          qrbox: { width: 250, height: 250 },  // Scan box size
-          aspectRatio: 1.0,
-          showTorchButtonIfSupported: true,     // Flashlight button
-          showZoomSliderIfSupported: true,      // Zoom
-          defaultZoomValueIfSupported: 2,
-          rememberLastUsedCamera: true,
-          // ✅ Multiple barcode formats support
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.DATA_MATRIX,
-          ]
-        },
-        false  // verbose = false
-      );
-      
-      qrScanner.render(onQRSuccess, onQRError);
-      document.getElementById('qrScanStatus').textContent = '📷 Camera ready! QR/Barcode ke saamne rakho';
-      document.getElementById('qrScanStatus').className = 'status status-ok';
-      
-    } catch(e) {
-      console.error('Scanner error:', e);
-      document.getElementById('qrScanStatus').textContent = '❌ Camera nahi khula! ✏️ Neeche manually type karo';
-      document.getElementById('qrScanStatus').className = 'status status-err';
-      document.getElementById('qr-reader').innerHTML = `
-        <div style="padding:40px;text-align:center;color:#aaa">
-          <div style="font-size:40px">📷</div>
-          <div style="margin-top:10px">Camera permission do browser mein</div>
-          <div style="font-size:12px;color:#666;margin-top:8px">Ya neeche ✏️ manually type karo</div>
-        </div>`;
-    }
-  }, 300);
+  document.getElementById('qrResult').innerHTML = '';
+  setStatus('qrStatus','🔍 Camera permission maang raha hai...','status-bar s-load');
+  startQRCamera();
 }
 
-function onQRSuccess(decodedText, decodedResult){
-  // ✅ AUTO DETECTED!
-  if(navigator.vibrate) navigator.vibrate([200,100,200]);
-  
-  // Stop scanner
-  if(qrScanner){
-    try{ qrScanner.clear().catch(()=>{}); }catch(e){}
-    qrScanner = null;
+async function startQRCamera(){
+  // Stop any existing stream
+  stopQRCamera();
+
+  const video = document.getElementById('qrVideo');
+  const statusEl = document.getElementById('qrStatus');
+
+  try {
+    // Request back camera with high resolution
+    qrVideoStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+
+    video.srcObject = qrVideoStream;
+
+    // Wait for video to be ready then start scanning
+    video.onloadedmetadata = () => {
+      video.play().then(() => {
+        setStatus('qrStatus','📷 Camera ready! QR code ke saamne rakho → Auto scan hoga ✅','status-bar s-ok');
+        startQRScanLoop();
+      });
+    };
+
+  } catch(err) {
+    console.error('Camera error:', err);
+    let msg = '❌ Camera nahi khula!';
+    if(err.name === 'NotAllowedError')  msg = '❌ Camera permission do! Browser settings mein Allow karo.';
+    if(err.name === 'NotFoundError')    msg = '❌ Phone mein camera nahi mila!';
+    if(err.name === 'NotReadableError') msg = '❌ Camera kisi aur app mein use ho raha hai. Dusri apps band karo.';
+    setStatus('qrStatus', msg, 'status-bar s-err');
+    document.getElementById('qrResult').innerHTML =
+      `<div style="padding:20px;text-align:center;color:#aaa">
+        <div style="font-size:40px;margin-bottom:10px">📷</div>
+        <div style="margin-bottom:8px">${msg}</div>
+        <div style="font-size:12px;color:#666">Ya neeche ✏️ Manually type karo button dabao</div>
+      </div>`;
   }
-  
-  document.getElementById('qrScanStatus').textContent = '✅ SCAN SUCCESSFUL!';
-  document.getElementById('qrScanStatus').className = 'status status-ok';
-  document.getElementById('qr-reader').innerHTML = '';
-  
-  // Show result
-  document.getElementById('qrDetected').innerHTML = `
-    <div class="scan-detected">
-      <h4>✅ AUTO DETECTED!</h4>
-      <p>📷 Data: <strong style="color:#fff;font-size:15px">${decodedText}</strong></p>
+}
+
+function startQRScanLoop(){
+  const video  = document.getElementById('qrVideo');
+  const canvas = document.getElementById('qrCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  function tick(){
+    if(!qrVideoStream) return; // Camera stopped
+
+    if(video.readyState === video.HAVE_ENOUGH_DATA){
+      // Set canvas size to video size
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw current frame
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Get pixel data for jsQR
+      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      // jsQR scan — detect QR code in frame
+      const qrCode = jsQR(imgData.data, imgData.width, imgData.height, {
+        inversionAttempts: 'dontInvert'
+      });
+
+      if(qrCode && qrCode.data){
+        // ✅ QR FOUND!
+        onQRFound(qrCode.data);
+        return; // Stop loop
+      }
+    }
+    // Next frame
+    qrAnimFrame = requestAnimationFrame(tick);
+  }
+
+  qrAnimFrame = requestAnimationFrame(tick);
+}
+
+function onQRFound(data){
+  // Vibrate
+  if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+  // Stop camera
+  stopQRCamera();
+
+  // Show flash effect
+  document.getElementById('qrCamWrap').innerHTML +=
+    '<div class="scan-success-flash"></div>';
+
+  setStatus('qrStatus', '✅ QR SCAN SUCCESSFUL!', 'status-bar s-ok');
+
+  document.getElementById('qrResult').innerHTML = `
+    <div class="scan-result-box">
+      <h4>✅ QR / BARCODE DETECT HO GAYA!</h4>
+      <div class="data">${data}</div>
     </div>`;
-  
-  setTimeout(() => {
-    if(scanPurpose === 'sale'){
-      document.getElementById('sQR').value = decodedText;
-      // IMEI usually 15 digits - auto fill
-      if(/^\d{14,16}$/.test(decodedText.replace(/\s/g,''))){
-        document.getElementById('sImei').value = decodedText;
-      }
-      document.getElementById('qrScanResult').innerHTML = '<div class="status status-ok">✅ QR Scanned: '+decodedText+'</div>';
-      showScreen('newSaleScreen');
-      toast('✅ QR Auto Scan Done!');
-      
-    } else if(scanPurpose === 'search'){
-      const sales = db('s');
-      const found = sales.filter(s => 
-        (s.mobile_qr||'').includes(decodedText) || 
-        (s.imei||'').includes(decodedText) ||
-        decodedText.includes(s.imei||'XXXXX')
-      );
-      if(found.length){
-        showSaleDetail(found[0].id, 'dashboardScreen');
-        toast('✅ Mobile mila!');
-      } else {
-        showScreen('dashboardScreen');
-        toast('❌ Ye mobile hamari dukaan se nahi bika!');
-      }
+
+  setTimeout(() => processQRData(data), 1200);
+}
+
+function processQRData(data){
+  if(scanPurpose === 'sale'){
+    document.getElementById('sQR').value   = data;
+    document.getElementById('sImei').value = data;
+    document.getElementById('qrFillMsg').innerHTML =
+      `<div class="status-bar s-ok" style="margin:4px 12px">✅ QR Auto Scan: ${data}</div>`;
+    showScreen('newSaleScreen');
+    toast('✅ QR Auto Scan Done!');
+
+  } else {
+    const sales = DB.get('s');
+    const found = sales.find(s =>
+      (s.mobile_qr||'').includes(data) ||
+      (s.imei||'').includes(data) ||
+      data.includes(s.imei||'~~NONE~~')
+    );
+    if(found){
+      showSaleDetail(found.id, 'dashboardScreen');
+      toast('✅ Mobile record mila!');
+    } else {
+      showScreen('dashboardScreen');
+      toast('❌ Ye mobile hamari dukaan se nahi bika!');
     }
-  }, 1500);
-}
-
-function onQRError(err){
-  // Ignore scan errors (ye normal hai jab scan ho raha ho)
-}
-
-function stopQRScan(goBack=true){
-  if(qrScanner){
-    try{ qrScanner.clear().catch(()=>{}); }catch(e){}
-    qrScanner = null;
   }
-  document.getElementById('qr-reader').innerHTML = '';
-  if(goBack) showScreen(scanPurpose==='sale' ? 'newSaleScreen' : 'dashboardScreen');
 }
 
-function manualQREntry(){
-  stopQRScan(false);
+function stopQRCamera(){
+  if(qrAnimFrame){ cancelAnimationFrame(qrAnimFrame); qrAnimFrame = null; }
+  if(qrVideoStream){
+    qrVideoStream.getTracks().forEach(t => t.stop());
+    qrVideoStream = null;
+  }
+  const v = document.getElementById('qrVideo');
+  if(v) v.srcObject = null;
+}
+
+function closeQRScan(){
+  stopQRCamera();
+  showScreen(scanPurpose === 'sale' ? 'newSaleScreen' : 'dashboardScreen');
+}
+
+function manualQR(){
+  stopQRCamera();
   document.getElementById('manualTitle').textContent = '📷 QR / IMEI Number Likho';
-  document.getElementById('manualInp').placeholder = 'QR ya IMEI number...';
   document.getElementById('manualInp').value = '';
+  document.getElementById('manualInp').placeholder = 'QR ya IMEI number yahan...';
+  document.getElementById('manualInp').inputMode = 'text';
   document.getElementById('manualModal').classList.add('show');
-  setTimeout(() => document.getElementById('manualInp').focus(), 300);
+  setTimeout(() => document.getElementById('manualInp').focus(), 200);
 }
 
-// ============================================
-// 🪪 AADHAAR AUTO READER (OCR)
-// ============================================
-function startAadhaarScan(purpose){
+// =============================================
+// AADHAAR CAMERA + OCR
+// =============================================
+function openAadhaarScan(purpose){
   scanPurpose = purpose;
   showScreen('aadhaarScanScreen');
-  document.getElementById('aadhaarScanStatus').textContent = '📸 Aadhaar FRONT side ka photo lo → Auto read!';
-  document.getElementById('aadhaarScanStatus').className = 'status status-loading';
-  document.getElementById('ocrProgress').style.display = 'none';
-  document.getElementById('ocrResults').innerHTML = '';
+  setStatus('aadhaarStatus','📸 Aadhaar card FRONT side ka photo lo → Auto read hoga!','status-bar s-load');
+  document.getElementById('ocrProg').style.display = 'none';
+  document.getElementById('ocrOut').innerHTML = '';
   startAadhaarCamera();
 }
 
 async function startAadhaarCamera(){
+  stopAadhaarCamera();
+  const video = document.getElementById('aadhaarVideo');
+
   try {
-    const video = document.getElementById('aadhaarVideo');
-    aadhaarStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} }
+    aadhaarVideoStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width:  { ideal: 1920 },
+        height: { ideal: 1080 }
+      },
+      audio: false
     });
-    video.srcObject = aadhaarStream;
-  } catch(e) {
-    document.getElementById('aadhaarScanStatus').textContent = '📷 Camera nahi mila! ✏️ Manually type karo';
-    document.getElementById('aadhaarScanStatus').className = 'status status-err';
+    video.srcObject = aadhaarVideoStream;
+    video.play();
+    setStatus('aadhaarStatus','📸 Camera ready! Card seedha rakho aur Photo Lo button dabao','status-bar s-ok');
+  } catch(err){
+    let msg = '❌ Camera nahi khula! ✏️ Manually type karo.';
+    if(err.name === 'NotAllowedError') msg = '❌ Camera permission do! Ya ✏️ manually type karo.';
+    setStatus('aadhaarStatus', msg, 'status-bar s-err');
   }
 }
 
 function captureAadhaar(){
-  const video = document.getElementById('aadhaarVideo');
+  const video  = document.getElementById('aadhaarVideo');
   const canvas = document.getElementById('aadhaarCanvas');
-  canvas.width = video.videoWidth || 1280;
+
+  if(!aadhaarVideoStream){
+    toast('❌ Camera nahi chal raha!');
+    return;
+  }
+
+  canvas.width  = video.videoWidth  || 1280;
   canvas.height = video.videoHeight || 720;
   canvas.getContext('2d').drawImage(video, 0, 0);
-  const imageData = canvas.toDataURL('image/png');
-  document.getElementById('aadhaarScanStatus').textContent = '🔍 Aadhaar padh rahe hain... Ruko...';
-  document.getElementById('aadhaarScanStatus').className = 'status status-loading';
-  document.getElementById('ocrProgress').style.display = 'block';
-  runOCR(imageData);
+
+  const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+  setStatus('aadhaarStatus','🔍 Aadhaar padh rahe hain... Thoda ruko...','status-bar s-load');
+  document.getElementById('ocrProg').style.display = 'block';
+  document.getElementById('ocrOut').innerHTML = '';
+
+  runOCR(imgData);
 }
 
-async function runOCR(imageData){
+async function runOCR(imgData){
   try {
-    const result = await Tesseract.recognize(imageData,'eng+hin',{
+    const result = await Tesseract.recognize(imgData, 'eng+hin', {
       logger: m => {
         if(m.status === 'recognizing text'){
           const pct = Math.round(m.progress * 100);
-          document.getElementById('ocrPercent').textContent = pct;
+          document.getElementById('ocrPct').textContent = pct;
           document.getElementById('ocrBar').style.width = pct + '%';
         }
       }
     });
+
+    document.getElementById('ocrProg').style.display = 'none';
     const text = result.data.text;
-    const extracted = extractAadhaarData(text);
-    showOCRResults(extracted, text);
-  } catch(e) {
-    document.getElementById('aadhaarScanStatus').textContent = '❌ Read nahi hua. Phir try karo ya manually type karo.';
-    document.getElementById('aadhaarScanStatus').className = 'status status-err';
-    document.getElementById('ocrProgress').style.display = 'none';
+    const extracted = parseAadhaar(text);
+    showOCRResult(extracted, text);
+
+  } catch(e){
+    document.getElementById('ocrProg').style.display = 'none';
+    setStatus('aadhaarStatus','❌ OCR fail hua. Clear photo lo ya manually type karo.','status-bar s-err');
   }
 }
 
-function extractAadhaarData(text){
-  const data = { aadhaar:'', name:'', dob:'', gender:'', address:'' };
-  
-  // 12-digit Aadhaar number
-  const aadhaarPatterns = [/(\d{4}\s?\d{4}\s?\d{4})/g, /(\d{12})/g];
-  for(let pat of aadhaarPatterns){
-    const matches = text.match(pat);
-    if(matches){
-      for(let m of matches){
-        const clean = m.replace(/\s/g,'');
-        if(clean.length === 12 && !clean.startsWith('1947')){
-          data.aadhaar = clean; break;
-        }
-      }
-    }
-    if(data.aadhaar) break;
-  }
-  
+function parseAadhaar(text){
+  const d = { aadhaar:'', name:'', dob:'', gender:'', address:'' };
+
+  // 12-digit Aadhaar
+  const m1 = text.match(/\d{4}\s\d{4}\s\d{4}/);
+  const m2 = text.match(/\d{12}/);
+  if(m1) d.aadhaar = m1[0].replace(/\s/g,'');
+  else if(m2){ const c=m2[0]; if(c.length===12 && !c.startsWith('1947')) d.aadhaar=c; }
+
   // DOB
-  const dobMatch = text.match(/(\d{2}[\/\-]\d{2}[\/\-]\d{4})/);
-  if(dobMatch) data.dob = dobMatch[1];
-  
+  const dobM = text.match(/\d{2}[\/\-]\d{2}[\/\-]\d{4}/);
+  if(dobM) d.dob = dobM[0];
+
   // Gender
-  if(/male|पुरुष|MALE/i.test(text)) data.gender = 'Male';
-  else if(/female|महिला|FEMALE/i.test(text)) data.gender = 'Female';
-  
-  // Name
+  if(/\bMALE\b|पुरुष/i.test(text))   d.gender = 'Male';
+  else if(/FEMALE|महिला/i.test(text)) d.gender = 'Female';
+
+  // Name: English name lines
   const lines = text.split('\n').map(l=>l.trim()).filter(l=>l.length>2);
-  for(let line of lines){
-    if(/government|india|aadhaar|authority|unique/i.test(line)) continue;
-    if(/\d{4}/.test(line) && line.length < 20) continue;
-    if(line.length > 3 && line.length < 40){
-      if(/^[A-Z][a-zA-Z\s]+$/.test(line) || /^[ऀ-ॿ\s]+$/.test(line)){
-        if(!data.name) data.name = line;
-      }
+  for(const line of lines){
+    if(/government|india|aadhaar|authority|unique|uidai/i.test(line)) continue;
+    if(/\d{3}/.test(line)) continue;
+    if(/^[A-Z][a-zA-Z]+([\s][A-Za-z]+){0,3}$/.test(line) && line.length > 3 && line.length < 35){
+      d.name = line; break;
     }
   }
-  return data;
+
+  return d;
 }
 
-function showOCRResults(data, rawText){
-  document.getElementById('ocrProgress').style.display = 'none';
+function showOCRResult(data, rawText){
   let html = '';
+
   if(data.aadhaar){
-    html += `<div class="scan-detected">
-      <h4>✅ AADHAAR NUMBER MILA!</h4>
-      <p style="font-size:20px;color:#fff;margin:8px 0">🪪 ${data.aadhaar.replace(/(\d{4})/g,'$1 ').trim()}</p>
-      ${data.name ? '<p>👤 Naam: <strong>'+data.name+'</strong></p>' : ''}
-      ${data.dob ? '<p>📅 DOB: '+data.dob+'</p>' : ''}
-      ${data.gender ? '<p>⚧ Gender: '+data.gender+'</p>' : ''}
-    </div>`;
-    document.getElementById('aadhaarScanStatus').textContent = '✅ Aadhaar Auto Read Successful!';
-    document.getElementById('aadhaarScanStatus').className = 'status status-ok';
+    const fmt = data.aadhaar.replace(/(\d{4})(\d{4})(\d{4})/,'$1 $2 $3');
+    html += `
+      <div class="scan-result-box" style="margin:8px 12px">
+        <h4>✅ AADHAAR MILA!</h4>
+        <div class="data" style="font-size:22px;letter-spacing:2px">🪪 ${fmt}</div>
+        ${data.name   ? `<div style="margin-top:8px;color:#aaa">👤 Naam: <strong style="color:#fff">${data.name}</strong></div>` : ''}
+        ${data.dob    ? `<div style="color:#aaa">📅 DOB: ${data.dob}</div>` : ''}
+        ${data.gender ? `<div style="color:#aaa">⚧ ${data.gender}</div>` : ''}
+      </div>`;
+    setStatus('aadhaarStatus','✅ Aadhaar Auto Read Successful!','status-bar s-ok');
     if(navigator.vibrate) navigator.vibrate([200,100,200]);
+
+    const a = data.aadhaar, n = (data.name||'').replace(/'/g,''), dob = data.dob||'';
+    html += `<button class="btn btn-green btn-small" onclick="acceptAadhaar('${a}','${n}','${dob}')">✅ ACCEPT → FORM MEIN BHARO</button>`;
   } else {
-    html += `<div class="status status-err" style="margin:8px 12px">⚠️ Aadhaar number detect nahi hua. Clear photo lo ya manually type karo.</div>`;
-    document.getElementById('aadhaarScanStatus').textContent = '⚠️ Phir se try karo (clear photo lo)';
-    document.getElementById('aadhaarScanStatus').className = 'status status-err';
+    html += `<div class="status-bar s-err" style="margin:8px 12px">⚠️ Aadhaar number detect nahi hua.<br>Card seedha aur clear rakho, phir try karo.</div>`;
+    setStatus('aadhaarStatus','⚠️ Detect nahi hua — phir try karo','status-bar s-err');
   }
-  
-  const aadhaarSafe = (data.aadhaar||'').replace(/'/g,'');
-  const nameSafe = (data.name||'').replace(/'/g,'');
-  
-  if(data.aadhaar){
-    html += `<button class="btn btn-green btn-small" onclick="acceptAadhaarData('${aadhaarSafe}','${nameSafe}','${data.dob||''}','${data.address||''}')">✅ ACCEPT & USE</button>`;
-  }
-  html += `<button class="btn btn-gray btn-small" onclick="retryAadhaarScan()">🔄 Phir se photo lo</button>`;
-  html += `<details style="margin:8px 12px;color:#666;font-size:11px">
-    <summary>🔍 Raw OCR Text (debugging)</summary>
-    <pre style="white-space:pre-wrap;padding:8px;background:#111;border-radius:6px;margin-top:4px;font-size:10px">${rawText}</pre>
+
+  html += `<button class="btn btn-gray btn-small" onclick="retryAadhaar()">🔄 Phir se try karo</button>`;
+  html += `<details style="margin:8px 12px">
+    <summary style="color:#555;font-size:12px;cursor:pointer">📄 Raw OCR text (debug)</summary>
+    <pre style="margin-top:6px;padding:8px;background:#111;border-radius:8px;font-size:10px;white-space:pre-wrap;color:#888;overflow-x:auto">${rawText}</pre>
   </details>`;
-  document.getElementById('ocrResults').innerHTML = html;
+
+  document.getElementById('ocrOut').innerHTML = html;
 }
 
-function acceptAadhaarData(aadhaar, name, dob, address){
+function acceptAadhaar(aadhaar, name, dob){
   stopAadhaarCamera();
+
   if(scanPurpose === 'sale'){
     if(aadhaar) document.getElementById('sAadhaar').value = aadhaar;
-    if(name) document.getElementById('sName').value = name;
-    if(address) document.getElementById('sAddress').value = address;
-    document.getElementById('aadhaarScanResult').innerHTML = `<div class="status status-ok">✅ Auto Read: ${aadhaar} ${name ? '| '+name : ''}</div>`;
+    if(name)    document.getElementById('sName').value    = name;
+    document.getElementById('aadhaarFillMsg').innerHTML =
+      `<div class="status-bar s-ok" style="margin:4px 12px">✅ Auto Filled: ${aadhaar}${name ? ' | '+name : ''}</div>`;
     showScreen('newSaleScreen');
-    toast('✅ Aadhaar data auto filled!');
-  } else if(scanPurpose === 'search'){
-    const custs = db('c');
+    toast('✅ Aadhaar data form mein fill ho gaya!');
+
+  } else {
+    const custs = DB.get('c');
     const clean = aadhaar.replace(/\D/g,'');
-    const found = custs.filter(c=>(c.aadhaar||'').replace(/\D/g,'').includes(clean));
-    if(found.length){
-      showCustDetail(found[0].id, 'dashboardScreen');
+    const found = custs.find(c => (c.aadhaar||'').replace(/\D/g,'').includes(clean));
+    if(found){
+      showCustDetail(found.id, 'dashboardScreen');
       toast('✅ Customer mila!');
     } else {
       showScreen('dashboardScreen');
-      toast('❌ Aadhaar '+aadhaar+' se koi nahi mila');
+      toast('❌ Aadhaar '+aadhaar+' ka koi record nahi mila');
     }
   }
 }
 
-function retryAadhaarScan(){
-  document.getElementById('ocrResults').innerHTML = '';
-  document.getElementById('ocrProgress').style.display = 'none';
-  document.getElementById('aadhaarScanStatus').textContent = '📸 Clear photo lo → Auto read hoga!';
-  document.getElementById('aadhaarScanStatus').className = 'status status-loading';
-}
-
-function stopAadhaarScan(){
-  stopAadhaarCamera();
-  showScreen(scanPurpose==='sale' ? 'newSaleScreen' : 'dashboardScreen');
+function retryAadhaar(){
+  document.getElementById('ocrOut').innerHTML = '';
+  document.getElementById('ocrProg').style.display = 'none';
+  setStatus('aadhaarStatus','📸 Phir se try karo — card clear aur seedha rakho','status-bar s-load');
 }
 
 function stopAadhaarCamera(){
-  if(aadhaarStream){
-    aadhaarStream.getTracks().forEach(t=>t.stop());
-    aadhaarStream = null;
+  if(aadhaarVideoStream){
+    aadhaarVideoStream.getTracks().forEach(t => t.stop());
+    aadhaarVideoStream = null;
   }
+  const v = document.getElementById('aadhaarVideo');
+  if(v) v.srcObject = null;
 }
 
-function manualAadhaarEntry(){
+function closeAadhaarScan(){
+  stopAadhaarCamera();
+  showScreen(scanPurpose === 'sale' ? 'newSaleScreen' : 'dashboardScreen');
+}
+
+function manualAadhaar(){
   stopAadhaarCamera();
   document.getElementById('manualTitle').textContent = '🪪 Aadhaar Number Likho';
-  document.getElementById('manualInp').placeholder = '12 digit Aadhaar number...';
   document.getElementById('manualInp').value = '';
+  document.getElementById('manualInp').placeholder = '12 digit Aadhaar number...';
+  document.getElementById('manualInp').inputMode = 'numeric';
   document.getElementById('manualModal').classList.add('show');
-  setTimeout(() => document.getElementById('manualInp').focus(), 300);
+  setTimeout(() => document.getElementById('manualInp').focus(), 200);
 }
 
-// ============================================
+// =============================================
 // MANUAL MODAL
-// ============================================
-function closeManual(){document.getElementById('manualModal').classList.remove('show')}
+// =============================================
+function closeModal(){
+  document.getElementById('manualModal').classList.remove('show');
+}
 
 function submitManual(){
-  const d = document.getElementById('manualInp').value.trim();
-  if(!d) return;
-  closeManual();
-  
+  const val = document.getElementById('manualInp').value.trim();
+  if(!val){ toast('❌ Kuch to likho!'); return; }
+  closeModal();
+
+  const active = document.querySelector('.screen.active')?.id;
+
   if(scanPurpose === 'sale'){
-    const activeId = document.querySelector('.screen.active')?.id;
-    if(activeId === 'qrScanScreen'){
-      stopQRScan(false);
-      document.getElementById('sQR').value = d;
-      document.getElementById('sImei').value = d;
-      document.getElementById('qrScanResult').innerHTML = '<div class="status status-ok">✅ '+d+'</div>';
+    if(active === 'qrScanScreen'){
+      stopQRCamera();
+      document.getElementById('sQR').value   = val;
+      document.getElementById('sImei').value = val;
+      document.getElementById('qrFillMsg').innerHTML =
+        `<div class="status-bar s-ok" style="margin:4px 12px">✅ ${val}</div>`;
       showScreen('newSaleScreen');
     } else {
       stopAadhaarCamera();
-      document.getElementById('sAadhaar').value = d;
-      document.getElementById('aadhaarScanResult').innerHTML = '<div class="status status-ok">✅ Aadhaar: '+d+'</div>';
+      document.getElementById('sAadhaar').value = val;
+      document.getElementById('aadhaarFillMsg').innerHTML =
+        `<div class="status-bar s-ok" style="margin:4px 12px">✅ Aadhaar: ${val}</div>`;
       showScreen('newSaleScreen');
     }
   } else {
-    const activeId = document.querySelector('.screen.active')?.id;
-    if(activeId === 'qrScanScreen'){
-      stopQRScan(false);
-      const sales = db('s');
-      const f = sales.filter(s=>(s.mobile_qr||'').includes(d)||(s.imei||'').includes(d));
-      if(f.length){showSaleDetail(f[0].id,'dashboardScreen');toast('✅ Mila!')}
-      else{showScreen('dashboardScreen');toast('❌ Nahi mila!')}
+    if(active === 'qrScanScreen'){
+      stopQRCamera();
+      const sales = DB.get('s');
+      const f = sales.find(s => (s.mobile_qr||'').includes(val)||(s.imei||'').includes(val));
+      if(f){ showSaleDetail(f.id,'dashboardScreen'); toast('✅ Mila!'); }
+      else { showScreen('dashboardScreen'); toast('❌ Nahi mila!'); }
     } else {
       stopAadhaarCamera();
-      const custs = db('c');
-      const f = custs.filter(c=>(c.aadhaar||'').replace(/\D/g,'').includes(d.replace(/\D/g,'')));
-      if(f.length){showCustDetail(f[0].id,'dashboardScreen');toast('✅ Mila!')}
-      else{showScreen('dashboardScreen');toast('❌ Nahi mila!')}
+      const custs = DB.get('c');
+      const clean = val.replace(/\D/g,'');
+      const f = custs.find(c => (c.aadhaar||'').replace(/\D/g,'').includes(clean));
+      if(f){ showCustDetail(f.id,'dashboardScreen'); toast('✅ Mila!'); }
+      else { showScreen('dashboardScreen'); toast('❌ Aadhaar record nahi mila!'); }
     }
   }
 }
 
-// ============================================
+// =============================================
 // NEW SALE
-// ============================================
+// =============================================
 function goNewSale(){
   showScreen('newSaleScreen');
-  document.getElementById('aadhaarScanResult').innerHTML = '';
-  document.getElementById('qrScanResult').innerHTML = '';
+  document.getElementById('aadhaarFillMsg').innerHTML = '';
+  document.getElementById('qrFillMsg').innerHTML = '';
 }
 
-function setType(t){
+function setMType(t){
   mType = t;
-  document.getElementById('tNew').className = 'toggle-btn'+(t==='new' ? ' active-green' : '');
-  document.getElementById('tOld').className = 'toggle-btn'+(t==='old' ? ' active-orange' : '');
+  document.getElementById('tNew').className = 'toggle-btn' + (t==='new' ? ' active-green' : '');
+  document.getElementById('tOld').className = 'toggle-btn' + (t==='old' ? ' active-orange' : '');
 }
 
 function saveSale(){
-  const n = document.getElementById('sName').value.trim();
-  const p = document.getElementById('sPhone').value.trim();
-  if(!n){toast('❌ Naam daalein!');return}
-  if(!p){toast('❌ Phone daalein!');return}
-  
-  let custs = db('c');
-  let ex = custs.find(c=>c.phone===p);
+  const name  = document.getElementById('sName').value.trim();
+  const phone = document.getElementById('sPhone').value.trim();
+  if(!name)  { toast('❌ Customer naam daalein!'); return; }
+  if(!phone) { toast('❌ Phone number daalein!'); return; }
+
+  let custs = DB.get('c');
+  let cust  = custs.find(c => c.phone === phone);
   let cid;
-  if(ex){cid = ex.id}
+  if(cust){ cid = cust.id; }
   else{
     cid = 'C'+String(custs.length+1).padStart(5,'0');
-    custs.push({id:cid,name:n,phone:p,
-      aadhaar:document.getElementById('sAadhaar').value.trim(),
-      address:document.getElementById('sAddress').value.trim(),
-      created_at:new Date().toISOString()});
-    dbSave('c',custs);
+    custs.push({ id:cid, name, phone,
+      aadhaar:  document.getElementById('sAadhaar').value.trim(),
+      address:  document.getElementById('sAddress').value.trim(),
+      created_at: new Date().toISOString()
+    });
+    DB.set('c', custs);
   }
-  
-  let sales = db('s');
+
+  let sales = DB.get('s');
   const sid = 'S'+String(sales.length+1).padStart(5,'0');
   sales.push({
-    id:sid, customer_id:cid, customer_name:n, customer_phone:p,
-    customer_aadhaar:document.getElementById('sAadhaar').value.trim(),
-    mobile_type:mType,
-    mobile_brand:document.getElementById('sBrand').value.trim(),
-    mobile_model:document.getElementById('sModel').value.trim(),
-    imei:document.getElementById('sImei').value.trim(),
-    mobile_qr:document.getElementById('sQR').value.trim(),
-    price:document.getElementById('sPrice').value.trim(),
-    sold_by:staff,
-    notes:document.getElementById('sNotes').value.trim(),
-    date:new Date().toISOString()
+    id: sid, customer_id: cid, customer_name: name, customer_phone: phone,
+    customer_aadhaar: document.getElementById('sAadhaar').value.trim(),
+    mobile_type:  mType,
+    mobile_brand: document.getElementById('sBrand').value.trim(),
+    mobile_model: document.getElementById('sModel').value.trim(),
+    imei:         document.getElementById('sImei').value.trim(),
+    mobile_qr:    document.getElementById('sQR').value.trim(),
+    price:        document.getElementById('sPrice').value.trim(),
+    sold_by:      currentStaff,
+    notes:        document.getElementById('sNotes').value.trim(),
+    date:         new Date().toISOString()
   });
-  dbSave('s',sales);
-  
+  DB.set('s', sales);
+
   if(navigator.vibrate) navigator.vibrate(300);
-  toast('✅ Sale Saved! '+sid);
-  syncToDrive();
-  
-  setTimeout(()=>{
-    ['sName','sPhone','sAadhaar','sAddress','sBrand','sModel','sImei','sPrice','sQR','sNotes'].forEach(id=>{
-      document.getElementById(id).value='';
-    });
-    document.getElementById('aadhaarScanResult').innerHTML='';
-    document.getElementById('qrScanResult').innerHTML='';
-  },1500);
+  toast('✅ Sale Saved! ID: '+sid);
+  if(SCRIPT_URL) syncToDrive();
+
+  setTimeout(() => {
+    ['sName','sPhone','sAadhaar','sAddress','sBrand','sModel','sImei','sPrice','sQR','sNotes']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('aadhaarFillMsg').innerHTML = '';
+    document.getElementById('qrFillMsg').innerHTML = '';
+  }, 1500);
 }
 
-// ============================================
+// =============================================
 // SEARCH
-// ============================================
+// =============================================
 function doSearch(){
-  const q = document.getElementById('searchInp').value.trim();
+  const q  = document.getElementById('searchQ').value.trim();
   if(!q) return;
-  const custs=db('c'), sales=db('s'), ql=q.toLowerCase(), qn=q.replace(/\D/g,'');
-  
-  let fc = custs.filter(c=>
+  const ql = q.toLowerCase(), qn = q.replace(/\D/g,'');
+  const custs = DB.get('c'), sales = DB.get('s');
+
+  let fc = custs.filter(c =>
     (c.name||'').toLowerCase().includes(ql) ||
     (c.phone||'').includes(qn) ||
-    (c.aadhaar||'').replace(/\D/g,'').includes(qn)
+    ((c.aadhaar||'').replace(/\D/g,'').includes(qn) && qn.length > 3)
   );
-  let fs = sales.filter(s=>
+  let fs = sales.filter(s =>
     (s.mobile_qr||'').includes(q) ||
     (s.imei||'').includes(q)
   );
-  
-  const box = document.getElementById('searchResults');
-  box.innerHTML = '';
-  
+
+  const box = document.getElementById('searchOut');
   if(!fc.length && !fs.length){
-    box.innerHTML = '<div class="not-found-box">❌ "'+q+'" nahi mila</div>';
-    return;
+    box.innerHTML = `<div class="not-found-box">❌ "${q}" nahi mila</div>`; return;
   }
-  
-  let seen = new Set();
-  fc = fc.filter(c=>{if(seen.has(c.id))return false;seen.add(c.id);return true});
-  
-  fc.forEach(c=>{
-    const sc = sales.filter(s=>s.customer_id===c.id).length;
-    box.innerHTML += `<div class="result-card" onclick="showCustDetail('${c.id}','searchScreen')">
-      <h4>👤 ${c.name}</h4>
-      <p>📞 ${c.phone} | 🪪 ${c.aadhaar||'N/A'}</p>
-      <p>📊 ${sc} purchases</p></div>`;
-  });
-  
-  fs.forEach(s=>{
-    const mt = s.mobile_type==='new' ? '<span class="tag tag-new">✨N</span>' : '<span class="tag tag-old">♻️P</span>';
-    box.innerHTML += `<div class="result-card" style="border-color:#e65100" onclick="showSaleDetail('${s.id}','searchScreen')">
+
+  let html = '';
+  const seen = new Set();
+  fc.filter(c => { if(seen.has(c.id)) return false; seen.add(c.id); return true; })
+    .forEach(c => {
+      const cnt = sales.filter(s => s.customer_id === c.id).length;
+      html += `<div class="result-card" onclick="showCustDetail('${c.id}','searchScreen')">
+        <h4>👤 ${c.name}</h4>
+        <p>📞 ${c.phone} | 🪪 ${c.aadhaar||'N/A'}</p>
+        <p>📊 ${cnt} purchases</p></div>`;
+    });
+  fs.forEach(s => {
+    const mt = s.mobile_type==='new'
+      ? '<span class="tag tag-new">✨NEW</span>'
+      : '<span class="tag tag-old">♻️OLD</span>';
+    html += `<div class="result-card" style="border-color:#e65100" onclick="showSaleDetail('${s.id}','searchScreen')">
       <h4>📱 ${s.mobile_brand} ${s.mobile_model} ${mt}</h4>
       <p>👤 ${s.customer_name} | 💰 ₹${s.price}</p>
       <p>📅 ${(s.date||'').slice(0,10)} | 👨‍💼 ${s.sold_by}</p></div>`;
   });
+  box.innerHTML = html;
 }
 
-// ============================================
+// =============================================
 // DETAIL SCREENS
-// ============================================
+// =============================================
 function showCustDetail(cid, back){
   detBack = back;
-  const c = db('c').find(x=>x.id===cid);
-  if(!c) return;
-  const sales = db('s').filter(s=>s.customer_id===cid);
+  const c = DB.get('c').find(x => x.id===cid); if(!c) return;
+  const sales = DB.get('s').filter(s => s.customer_id===cid);
   document.getElementById('detTitle').textContent = '👤 '+c.name;
   let h = '<div class="card">';
   [['👤 Naam',c.name],['📞 Phone',c.phone],['🪪 Aadhaar',c.aadhaar||'N/A'],
-   ['📍 Address',c.address||'N/A'],['📅 Since',(c.created_at||'').slice(0,10)]].forEach(([l,v])=>{
-    h += `<div class="detail-row"><div class="dl">${l}</div><div class="dv">${v}</div></div>`;
-  });
+   ['📍 Address',c.address||'N/A'],['📅 Since',(c.created_at||'').slice(0,10)]]
+    .forEach(([l,v]) => h += `<div class="detail-row"><div class="dl">${l}</div><div class="dv">${v}</div></div>`);
   h += '</div>';
   h += `<div class="section-title">📊 Purchases (${sales.length})</div>`;
-  [...sales].reverse().forEach(s=>{
-    const mt = s.mobile_type==='new' ? '<span class="tag tag-new">✨N</span>' : '<span class="tag tag-old">♻️P</span>';
-    h += `<div class="result-card"><h4>📱 ${s.mobile_brand} ${s.mobile_model} ${mt} ₹${s.price}</h4>
+  [...sales].reverse().forEach(s => {
+    const mt = s.mobile_type==='new'
+      ? '<span class="tag tag-new">✨NEW</span>'
+      : '<span class="tag tag-old">♻️OLD</span>';
+    h += `<div class="result-card" onclick="showSaleDetail('${s.id}','detailScreen')">
+      <h4>📱 ${s.mobile_brand} ${s.mobile_model} ${mt} — ₹${s.price}</h4>
       <p>🔢 IMEI: ${s.imei||'N/A'}</p>
       <p>📅 ${(s.date||'').slice(0,10)} | 👨‍💼 ${s.sold_by}</p></div>`;
   });
@@ -835,122 +941,127 @@ function showCustDetail(cid, back){
 
 function showSaleDetail(sid, back){
   detBack = back;
-  const s = db('s').find(x=>x.id===sid);
-  if(!s) return;
-  const mt = s.mobile_type==='new' ? '✨ NAYA' : '♻️ PURANA';
+  const s = DB.get('s').find(x => x.id===sid); if(!s) return;
   document.getElementById('detTitle').textContent = '📱 '+s.mobile_brand+' '+s.mobile_model;
   let h = '<div class="confirm-box">✅ YE MOBILE HAMARI DUKAAN SE BIKA HAI!</div><div class="card">';
-  [['📱 Mobile',s.mobile_brand+' '+s.mobile_model],['📋 Type',mt],
-   ['🔢 IMEI',s.imei||'N/A'],['📷 QR',s.mobile_qr||'N/A'],
-   ['💰 Price','₹'+s.price],['👤 Customer',s.customer_name],
-   ['📞 Phone',s.customer_phone],['🪪 Aadhaar',s.customer_aadhaar||'N/A'],
-   ['📅 Date',(s.date||'').slice(0,16)],['👨‍💼 Sold By',s.sold_by]].forEach(([l,v])=>{
-    h += `<div class="detail-row"><div class="dl">${l}</div><div class="dv">${v}</div></div>`;
-  });
+  [['📱 Mobile', s.mobile_brand+' '+s.mobile_model],
+   ['📋 Type',   s.mobile_type==='new' ? '✨ NAYA' : '♻️ PURANA'],
+   ['🔢 IMEI',   s.imei||'N/A'],
+   ['📷 QR',     s.mobile_qr||'N/A'],
+   ['💰 Price',  '₹'+s.price],
+   ['👤 Customer',s.customer_name],
+   ['📞 Phone',  s.customer_phone],
+   ['🪪 Aadhaar',s.customer_aadhaar||'N/A'],
+   ['📅 Date',   (s.date||'').slice(0,16)],
+   ['👨‍💼 Sold By',s.sold_by]]
+    .forEach(([l,v]) => h += `<div class="detail-row"><div class="dl">${l}</div><div class="dv">${v}</div></div>`);
   h += '</div>';
   document.getElementById('detContent').innerHTML = h;
   showScreen('detailScreen');
 }
 
-// ============================================
+// =============================================
 // ALL SALES
-// ============================================
+// =============================================
 function showAllSales(){
-  const sales = db('s');
-  let h = `<div class="section-title">📊 Total: ${sales.length}</div>`;
-  [...sales].reverse().forEach(s=>{
-    const mt = s.mobile_type==='new' ? '<span class="tag tag-new">✨N</span>' : '<span class="tag tag-old">♻️P</span>';
+  const sales = DB.get('s');
+  let h = `<div class="section-title">📊 Total Sales: ${sales.length}</div>`;
+  [...sales].reverse().forEach(s => {
+    const mt = s.mobile_type==='new'
+      ? '<span class="tag tag-new">✨N</span>'
+      : '<span class="tag tag-old">♻️P</span>';
     h += `<div class="result-card" onclick="showSaleDetail('${s.id}','allSalesScreen')">
-      <h4>📱 ${s.mobile_brand} ${s.mobile_model} ${mt} ₹${s.price}</h4>
+      <h4>📱 ${s.mobile_brand} ${s.mobile_model} ${mt} — ₹${s.price}</h4>
       <p>👤 ${s.customer_name} | 📞 ${s.customer_phone}</p>
       <p>📅 ${(s.date||'').slice(0,16)} | 👨‍💼 ${s.sold_by}</p></div>`;
   });
-  document.getElementById('allSalesBox').innerHTML = h;
+  document.getElementById('allSalesOut').innerHTML = h;
   showScreen('allSalesScreen');
 }
 
-// ============================================
+// =============================================
 // STAFF
-// ============================================
-function loadStaffList(){
-  const st=db('st'), sales=db('s');
-  let h='';
-  st.forEach(s=>{
-    const sc = sales.filter(x=>(x.sold_by||'').toLowerCase()===(s.name||'').toLowerCase()).length;
-    h += `<div class="result-card"><h4>👤 ${s.name}</h4><p>${s.role||'Staff'} | Sales: ${sc}</p></div>`;
+// =============================================
+function loadStaffUI(){
+  const st = DB.get('st'), sales = DB.get('s');
+  let h = '';
+  st.forEach(s => {
+    const cnt = sales.filter(x => (x.sold_by||'').toLowerCase() === (s.name||'').toLowerCase()).length;
+    h += `<div class="result-card">
+      <h4>👤 ${s.name}</h4>
+      <p>${s.role||'Staff'} | 📊 ${cnt} sales</p></div>`;
   });
-  document.getElementById('staffList').innerHTML = h;
+  document.getElementById('staffOut').innerHTML = h || '<div style="padding:12px;color:#666;text-align:center">Koi staff nahi</div>';
 }
 
 function addStaff(){
-  const n = document.getElementById('stName').value.trim();
-  if(!n){toast('❌ Naam daalein!');return}
-  let st = db('st');
+  const n   = document.getElementById('stN').value.trim();
+  if(!n){ toast('❌ Naam daalein!'); return; }
+  let st = DB.get('st');
+  if(st.find(s => s.name.toLowerCase() === n.toLowerCase())){
+    toast('❌ Ye naam already hai!'); return;
+  }
   st.push({
-    id:'ST'+String(st.length+1).padStart(3,'0'),
-    name:n,
-    phone:document.getElementById('stPhone').value.trim(),
-    pin:document.getElementById('stPin').value.trim()||'1234',
-    role:'Salesman'
+    id:    'ST'+String(st.length+1).padStart(3,'0'),
+    name:  n,
+    phone: document.getElementById('stP').value.trim(),
+    pin:   document.getElementById('stPin').value.trim() || '1234',
+    role:  'Salesman'
   });
-  dbSave('st',st);
-  toast('✅ '+n+' added!');
-  document.getElementById('stName').value='';
-  document.getElementById('stPhone').value='';
-  document.getElementById('stPin').value='';
-  loadStaffList();
+  DB.set('st', st);
+  toast('✅ '+n+' add ho gaya!');
+  document.getElementById('stN').value = '';
+  document.getElementById('stP').value = '';
+  document.getElementById('stPin').value = '';
+  loadStaffUI();
 }
 
-// ============================================
+// =============================================
 // GOOGLE DRIVE SYNC
-// ============================================
+// =============================================
 async function syncToDrive(){
   if(!SCRIPT_URL) return;
   try{
-    await fetch(SCRIPT_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({
+    await fetch(SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({
         action:'sync',
-        customers:JSON.stringify(db('c')),
-        sales:JSON.stringify(db('s')),
-        staff:JSON.stringify(db('st')),
-        timestamp:new Date().toISOString()
+        customers: JSON.stringify(DB.get('c')),
+        sales:     JSON.stringify(DB.get('s')),
+        staff:     JSON.stringify(DB.get('st')),
+        timestamp: new Date().toISOString()
       })
     });
-    document.getElementById('syncStatus').textContent='✅';
-  }catch{
-    document.getElementById('syncStatus').textContent='❌';
-  }
+    document.getElementById('syncSt').textContent = '✅';
+  } catch { document.getElementById('syncSt').textContent = '❌'; }
 }
 
 async function syncFromDrive(){
   if(!SCRIPT_URL) return;
   try{
-    const r = await fetch(SCRIPT_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({action:'download'})
+    const r = await fetch(SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'download'})
     });
     const d = await r.json();
-    if(d.status==='success'){
+    if(d.status === 'success'){
       mergeDB('c', JSON.parse(d.customers||'[]'));
       mergeDB('s', JSON.parse(d.sales||'[]'));
-      mergeDB('st', JSON.parse(d.staff||'[]'));
+      mergeDB('st',JSON.parse(d.staff||'[]'));
       updateStats();
     }
-  }catch{}
+  } catch {}
 }
 
-function mergeDB(k, driveData){
-  let local = db(k);
-  let ids = new Set(local.map(x=>x.id));
-  driveData.forEach(d=>{if(!ids.has(d.id)) local.push(d)});
-  dbSave(k, local);
+function mergeDB(k, remote){
+  let local = DB.get(k);
+  const ids = new Set(local.map(x => x.id));
+  remote.forEach(r => { if(!ids.has(r.id)) local.push(r); });
+  DB.set(k, local);
 }
 
 async function syncDrive(){
-  document.getElementById('syncStatus').textContent='🔄...';
+  document.getElementById('syncSt').textContent = '🔄';
   toast('☁️ Syncing...');
   await syncToDrive();
   await syncFromDrive();
@@ -958,30 +1069,27 @@ async function syncDrive(){
   toast('✅ Sync done!');
 }
 
-// ============================================
+// =============================================
 // EXPORT CSV
-// ============================================
+// =============================================
 function exportCSV(){
-  const sales = db('s');
-  if(!sales.length){toast('❌ No data!');return}
-  const headers = Object.keys(sales[0]);
-  let csv = headers.join(',') + '\n';
-  sales.forEach(s=>{
-    csv += headers.map(h=>'"'+(s[h]||'')+'"').join(',') + '\n';
-  });
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const sales = DB.get('s');
+  if(!sales.length){ toast('❌ Koi data nahi!'); return; }
+  const keys = Object.keys(sales[0]);
+  let csv = keys.join(',') + '\n';
+  sales.forEach(s => { csv += keys.map(k => '"'+(s[k]||'')+'"').join(',') + '\n'; });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'GoyalMobile_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+  a.download = 'GoyalMobile_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
-  toast('📥 CSV Downloaded!');
+  toast('📥 CSV Download ho gaya!');
 }
 
-// ============================================
+// =============================================
 // INIT
-// ============================================
-if(!db('st').length){
-  dbSave('st',[{id:'ST001',name:'Owner',role:'owner',pin:'1234',phone:''}]);
+// =============================================
+if(!DB.get('st').length){
+  DB.set('st',[{ id:'ST001', name:'Owner', role:'owner', pin:'1234', phone:'' }]);
 }
 </script>
 </body>
